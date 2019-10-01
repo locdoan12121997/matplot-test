@@ -8,16 +8,14 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 from igraph import Graph
-
-# Personal modules
-from DraggablePoint import DraggablePoint
-from DraggableLine import DraggableLine
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 graph = Graph.Read_GraphML("./NREN.graphml")
 
 
-class MyGraph(FigureCanvas):
+class DataBar(FigureCanvas):
     node_list = []
     edge_list = []
 
@@ -25,8 +23,7 @@ class MyGraph(FigureCanvas):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
 
         self.axes = self.fig.add_subplot(111)
-        # self.axes.set_xlim(-60.0, 60.0)
-        # self.axes.set_ylim(-25.0, -75.0)
+
         # self.axes.set_axis_off()
 
         FigureCanvas.__init__(self, self.fig)
@@ -37,31 +34,28 @@ class MyGraph(FigureCanvas):
 
         self.show()
 
-        # self.plotNodes(graph.vs)
-        # self.plotLinks(graph.es)
+    def setData(self, data):
+        self.data = data
 
-    def plotDataCount(self, data):
+    def plotDataCount(self):
+        data = self.data
+
         value = list(set(data))
         height = [data.count(x) for x in set(data)]
 
+        self.figure.clear()
 
-    def plotNodes(self, nodes, size=None):
-        for node in nodes:
-            node = DraggablePoint(self, node["x"], node["y"])
-            self.node_list.append(node)
-        self.updateFigure()
+        # create an axis
+        ax = self.figure.add_subplot(111)
 
-    def plotLinks(self, links):
-        for link in links:
-            node_a = self.node_list[link.source]
-            node_b = self.node_list[link.target]
+        ax.bar(value, height)
+        for i in range(len(value)):  # your number of bars
+            plt.text(x=i,  # takes your x values as horizontal positioning argument
+                     y=height[i] + 1,  # takes your y values as vertical positioning argument
+                     s=height[i],  # the labels you want to add to the data
+                     size=9)
 
-            edge = DraggableLine(self, link.index, node_a, node_b, color='g')
-
-            node_a.lines.append(edge)
-            node_b.lines.append(edge)
-            self.edge_list.append(edge)
-            self.fig.axes[0].add_line(edge)
+        ax.xticks(np.arange(len(value)), value, rotation=90)
 
     def clearFigure(self):
         self.axes.set_axis_off()
@@ -74,5 +68,5 @@ class MyGraph(FigureCanvas):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    ex = MyGraph(width=30, height=22)
+    ex = DataBar(width=30, height=22)
     sys.exit(app.exec_())
